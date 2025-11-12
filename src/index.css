@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "flowbite";
+
+@theme {
+  --color-primary: #101114;
+}
+body {
+  background-color: darkgray;
+}
