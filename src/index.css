@@ -2,8 +2,16 @@
 @import "flowbite";
 
 @theme {
-  --color-primary: #101114;
+  --color-primary: #344e41;
 }
 body {
-  background-color: darkgray;
+  background-color: #dad7cd;
 }
+
+/* paleta de cores
+#dad7cd
+#a3b18a
+#588157
+#3a5a40
+#344e41
+*/
