@@ -3,7 +3,7 @@ import { Container } from "../../components/container";
 export function Home() {
   return (
     <Container>
-      <section className="p-4 rounded-lg w-full max-w-3xl mx-auto flex justify-center items-center gap-2 bg-secundary">
+      <section className="p-4 rounded-lg w-full mx-auto flex justify-center items-center gap-2 bg-secundary">
         <input
           type="text"
           placeholder="Pesquise o nome do projeto aqui"
