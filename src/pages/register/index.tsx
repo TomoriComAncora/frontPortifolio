@@ -76,12 +76,20 @@ export function Register() {
               register={register}
             />
           </div>
-
           <button
             type="submit"
-            className="bg-zinc-500 w-full rounded-lg text-white h-10 font-medium cursor-pointer"
+            className="bg-zinc-500 w-full rounded-lg text-white h-10 font-medium cursor-pointer mb-3"
           >
             Cadastrar
+          </button>
+          <span className="flex justify-center mb-2">Ou</span>
+          <button className="bg-zinc-500 w-2/5 rounded-lg text-white h-10 font-medium cursor-pointer mb-3 flex justify-around items-center mx-auto hover:scale-105 transition-all shadow-[0px_10px_11px_0px_rgba(168,157,157,0.56)]">
+            <img
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              alt="Logo google"
+              className="w-5 h-5"
+            />
+            <span>Log in with Google</span>
           </button>
         </form>
         <Link to={"/login"}>Já possui uma conta? Faça o login!</Link>

@@ -16,6 +16,7 @@ interface AuthContextData {
   signed: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (token: string)=> Promise<void>,
   logout: () => void;
 }
 
@@ -56,6 +57,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile.data);
   }
 
+  async function loginWithGoogle(token: string){
+    console.log("Login Google: recebendo token", token);
+    localStorage.setItem("token", token);
+    api.defaults.headers.Authorization = `Bearer ${token}`;
+
+    try{
+      const profile = await api.get<User>("/me");
+      setUser(profile.data);
+    }catch(err){
+      console.log("Erro ao carregar usuário do google: ", err);
+      logout();
+    }
+  }
+
   function logout() {
     localStorage.removeItem("token");
     setUser(null);
@@ -63,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, signed: !!user, loading, login, logout }}
+      value={{ user, signed: !!user, loading, login, loginWithGoogle, logout }}
     >
       {children}
     </AuthContext.Provider>
