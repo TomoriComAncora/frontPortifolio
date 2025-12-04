@@ -18,10 +18,13 @@
     "lucide-react": "^0.553.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-hook-form": "^7.66.1",
+    "react-hook-form": "^7.68.0",
+    "react-hot-toast": "^2.6.0",
+    "react-loading-skeleton": "^3.5.0",
     "react-router": "^7.9.5",
+    "react-router-dom": "^7.10.1",
     "tailwindcss": "^4.1.17",
-    "zod": "^4.1.12"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
