@@ -16,7 +16,8 @@ interface AuthContextData {
   signed: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: (token: string)=> Promise<void>,
+  register: (nome: string, email: string, password: string) => Promise<void>;
+  loginWithGoogle: (token: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -49,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function login(email: string, senha: string) {
     const res = await api.post<LoginResponse>("/session", { email, senha });
-    console.log("Resposta do login: ", res.data)
+    console.log("Resposta do login: ", res.data);
 
     localStorage.setItem("token", res.data.token);
 
@@ -57,18 +58,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile.data);
   }
 
-  async function loginWithGoogle(token: string){
+  async function loginWithGoogle(token: string) {
     console.log("Login Google: recebendo token", token);
     localStorage.setItem("token", token);
     api.defaults.headers.Authorization = `Bearer ${token}`;
 
-    try{
+    try {
       const profile = await api.get<User>("/me");
       setUser(profile.data);
-    }catch(err){
+    } catch (err) {
       console.log("Erro ao carregar usuário do google: ", err);
       logout();
     }
+  }
+
+  async function register(nome: string, email: string, senha: string) {
+    const res = await api.post<LoginResponse>("/users", {
+      nome,
+      email,
+      senha,
+    });
+
+    localStorage.setItem("token", res.data.token);
+    api.defaults.headers.Authorization = `Bearer ${res.data.token}`;
+    const profile = await api.get<User>("/me");
+    setUser(profile.data);
   }
 
   function logout() {
@@ -78,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, signed: !!user, loading, login, loginWithGoogle, logout }}
+      value={{ user, signed: !!user, loading, login, register, loginWithGoogle, logout }}
     >
       {children}
     </AuthContext.Provider>

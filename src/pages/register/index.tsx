@@ -1,11 +1,12 @@
 import logoImg from "../../assets/logo.jpeg";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Container } from "../../components/container";
 
 import { Input } from "../../components/input";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import api from "../../server/api";
 
 const schema = z.object({
   name: z
@@ -25,6 +26,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function Register() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -34,8 +36,40 @@ export function Register() {
     mode: "onChange",
   });
 
-  function onSubmit(data: FormData) {
+  async function onSubmit(data: FormData) {
     console.log(data);
+    try{
+      const create = await api.post("/users", {
+        nome: data.name,
+        email: data.email,
+        senha: data.password
+      });
+
+      console.log("Resposta da criação: ", create.data);
+      const perfil = await api.post("/session", {
+        email: data.email,
+        senha: data.password,
+      });
+      console.log("Resposta do login: ", perfil.data)
+
+      const token = perfil?.data?.token;
+      console.log("Token recebido: " + token);
+      if(!token){
+        console.log("Não há token");
+        return;
+      }
+      localStorage.setItem("token", token);
+
+      navigate("/dashboard");
+      console.log(`Usuário de ${data.name} criado`);
+    }catch(err){
+      console.log("Erro")
+      console.log(err);
+    }
+  }
+
+    function handleGoogleLogin() {
+    window.location.href = "http://localhost:3333/auth/google";
   }
 
   return (
@@ -83,7 +117,10 @@ export function Register() {
             Cadastrar
           </button>
           <span className="flex justify-center mb-2">Ou</span>
-          <button className="bg-zinc-500 w-2/5 rounded-lg text-white h-10 font-medium cursor-pointer mb-3 flex justify-around items-center mx-auto hover:scale-105 transition-all shadow-[0px_10px_11px_0px_rgba(168,157,157,0.56)]">
+          <button className="bg-zinc-500 w-2/5 rounded-lg text-white h-10 font-medium cursor-pointer mb-3 flex justify-around items-center mx-auto hover:scale-105 transition-all shadow-[0px_10px_11px_0px_rgba(168,157,157,0.56)]"
+            type="button"
+            onClick={handleGoogleLogin}
+          >
             <img
               src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
               alt="Logo google"

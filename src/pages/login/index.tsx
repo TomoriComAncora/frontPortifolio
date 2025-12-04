@@ -1,5 +1,4 @@
 import logoImg from "../../assets/logo.jpeg";
-import { Link } from "react-router";
 import { Container } from "../../components/container";
 
 import { Input } from "../../components/input";
@@ -9,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useContext, useEffect } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, Link } from "react-router";
 
 const schema = z.object({
   email: z
