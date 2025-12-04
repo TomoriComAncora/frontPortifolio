@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Button, Card, Badge, Avatar } from "flowbite-react";
+import { Button, Card, Badge } from "flowbite-react";
 import {
   ArrowLeft,
   Edit3,
   Calendar,
   User,
   FileText,
-  CheckCircle,
   Briefcase,
   File as FileIcon,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
@@ -27,7 +27,7 @@ interface Projeto {
   ImagemProjeto?: { id: string; url: string }[];
 }
 
-export default function DetalhesProjeto() {
+export default function Detail() {
   const { id } = useParams();
   const [projeto, setProjeto] = useState<Projeto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,31 +47,43 @@ export default function DetalhesProjeto() {
   }, [id]);
 
   const getStatusColor = (status: string) => {
-    if (["Finalizado"].includes(status)) return "success";
-    if (["Em Obra", "Executivo"].includes(status)) return "warning";
-    return "info";
+    switch (status) {
+      case "Finalizado":
+        return "success";
+      case "Em Obra":
+        return "warning";
+      case "Cancelado":
+        return "failure";
+      default:
+        return "indigo";
+    }
   };
 
-  // Função para pegar a primeira imagem como capa
+  // ATUALIZADO: Agora aceita PDF como capa também
   const getCapaUrl = () => {
     if (projeto?.ImagemProjeto && projeto.ImagemProjeto.length > 0) {
-      // Pega a primeira que seja imagem (jpg, png)
+      // Pega o primeiro arquivo que não seja DOC/WORD (PDF ou Imagem servem)
       const img = projeto.ImagemProjeto.find(
-        (i) => !i.url.includes(".pdf") && !i.url.includes(".doc")
+        (i) =>
+          !i.url.endsWith(".doc") &&
+          !i.url.endsWith(".docx") &&
+          !i.url.endsWith(".odt")
       );
       if (img) return `http://localhost:3333/files/${img.url}`;
     }
-    return null; // Sem capa
+    return null;
   };
 
   const capa = getCapaUrl();
+  // Verifica se a capa encontrada é um PDF
+  const isCapaPdf = capa?.toLowerCase().endsWith(".pdf");
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4">
+    <div className="min-h-screen bg-[#f3f4f6] text-gray-800 flex flex-col items-center py-10 px-4">
       <div className="w-full max-w-5xl">
         <Link
-          to="/"
-          className="inline-flex items-center text-gray-500 hover:text-blue-600 mb-6 transition-colors"
+          to="/dashboard"
+          className="inline-flex items-center text-[#588157] hover:text-[#344e41] mb-6 transition-colors font-medium"
         >
           <ArrowLeft size={20} className="mr-2" /> Voltar para Dashboard
         </Link>
@@ -79,37 +91,62 @@ export default function DetalhesProjeto() {
         {loading ? (
           <Skeleton height={400} />
         ) : projeto ? (
-          <Card className="shadow-lg border-gray-100 overflow-hidden p-0">
-            {/* --- 1. BANNER / CAPA DO PROJETO --- */}
+          <Card className="shadow-xl border-none overflow-hidden p-0 bg-white">
+            {/* --- ÁREA DA CAPA --- */}
             {capa ? (
-              <div className="h-64 w-full relative group">
-                <img
-                  src={capa}
-                  alt="Capa"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                <div className="absolute bottom-4 left-6 text-white">
-                  <Badge
-                    color={getStatusColor(projeto.categoria)}
-                    className="mb-2 w-fit"
-                  >
-                    {projeto.categoria}
-                  </Badge>
-                  <h1 className="text-4xl font-bold shadow-black drop-shadow-md">
-                    {projeto.titulo}
-                  </h1>
+              // Se for PDF, mostra o visualizador (iframe)
+              isCapaPdf ? (
+                <div className="h-96 w-full relative bg-gray-100">
+                  <iframe
+                    src={`${capa}#toolbar=0`}
+                    className="w-full h-full border-none"
+                    title="Capa PDF"
+                  />
+                  {/* Overlay parcial para titulo */}
+                  <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 pointer-events-none">
+                    <Badge
+                      color={getStatusColor(projeto.categoria)}
+                      className="mb-2 w-fit"
+                    >
+                      {projeto.categoria}
+                    </Badge>
+                    <h1 className="text-4xl font-bold text-white drop-shadow-md">
+                      {projeto.titulo}
+                    </h1>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                // Se for Imagem, mostra normal
+                <div className="h-72 w-full relative group">
+                  <img
+                    src={capa}
+                    alt="Capa"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                  <div className="absolute bottom-6 left-8 text-white">
+                    <Badge
+                      color={getStatusColor(projeto.categoria)}
+                      className="mb-3 w-fit px-3 py-1 text-sm"
+                    >
+                      {projeto.categoria}
+                    </Badge>
+                    <h1 className="text-5xl font-bold drop-shadow-lg">
+                      {projeto.titulo}
+                    </h1>
+                  </div>
+                </div>
+              )
             ) : (
-              <div className="bg-gray-100 h-32 flex items-center justify-center border-b">
+              // Sem capa
+              <div className="bg-[#dad7cd] h-48 flex items-center justify-center border-b border-gray-200">
                 <div className="text-center">
-                  <h1 className="text-3xl font-bold text-gray-800">
+                  <h1 className="text-4xl font-bold text-[#344e41]">
                     {projeto.titulo}
                   </h1>
                   <Badge
                     color={getStatusColor(projeto.categoria)}
-                    className="mt-2 mx-auto w-fit"
+                    className="mt-3 mx-auto w-fit text-sm"
                   >
                     {projeto.categoria}
                   </Badge>
@@ -117,46 +154,44 @@ export default function DetalhesProjeto() {
               </div>
             )}
 
-            <div className="p-6">
-              {/* --- 2. GRID DE INFORMAÇÕES (CLIENTE, ARQUITETO, PRAZO) --- */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-full shadow-sm text-blue-600">
-                    <User size={20} />
+            <div className="p-8">
+              {/* GRID DE INFORMAÇÕES */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+                  <div className="p-3 bg-blue-100 text-blue-600 rounded-full">
+                    <User size={24} />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase">
                       Cliente
                     </p>
-                    <p className="font-semibold text-gray-800">
+                    <p className="text-lg font-bold text-gray-800">
                       {projeto.cliente || "Não informado"}
                     </p>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-full shadow-sm text-purple-600">
-                    <Briefcase size={20} />
+                <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+                  <div className="p-3 bg-purple-100 text-purple-600 rounded-full">
+                    <Briefcase size={24} />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase">
                       Responsável
                     </p>
-                    <p className="font-semibold text-gray-800">
+                    <p className="text-lg font-bold text-gray-800">
                       {projeto.responsavel || "Não informado"}
                     </p>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white rounded-full shadow-sm text-orange-600">
-                    <Calendar size={20} />
+                <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+                  <div className="p-3 bg-orange-100 text-orange-600 rounded-full">
+                    <Calendar size={24} />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase">
                       Previsão Entrega
                     </p>
-                    <p className="font-semibold text-gray-800">
+                    <p className="text-lg font-bold text-gray-800">
                       {projeto.prazo
                         ? new Date(projeto.prazo).toLocaleDateString("pt-BR")
                         : "A definir"}
@@ -165,45 +200,58 @@ export default function DetalhesProjeto() {
                 </div>
               </div>
 
-              {/* --- 3. ESCOPO / DESCRIÇÃO --- */}
-              <div className="mb-8">
-                <h3 className="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
-                  <FileText size={20} /> Escopo do Projeto
+              {/* ESCOPO */}
+              <div className="mb-10">
+                <h3 className="text-xl font-bold text-[#344e41] mb-4 flex items-center gap-2">
+                  <FileText size={24} className="text-[#588157]" /> Escopo do
+                  Projeto
                 </h3>
-                <div className="text-gray-600 leading-relaxed whitespace-pre-line bg-white p-4 border rounded-lg">
+                <div className="text-gray-700 leading-relaxed whitespace-pre-line bg-gray-50 p-6 border border-gray-200 rounded-xl">
                   {projeto.descricao || "Sem descrição."}
                 </div>
               </div>
 
-              {/* --- 4. GALERIA DE ARQUIVOS --- */}
+              {/* GALERIA */}
               {projeto.ImagemProjeto && projeto.ImagemProjeto.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-bold text-gray-800 mb-3">
-                    Arquivos e Imagens
+                <div className="mb-8">
+                  <h3 className="text-xl font-bold text-[#344e41] mb-4 flex items-center gap-2">
+                    <ImageIcon size={24} className="text-[#588157]" /> Arquivos
+                    e Imagens
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {projeto.ImagemProjeto.map((file) => {
+                      // Verifica tipo
+                      const isPdf = file.url.endsWith(".pdf");
                       const isDoc =
-                        file.url.includes(".pdf") ||
-                        file.url.includes(".doc") ||
-                        file.url.includes(".odt");
+                        file.url.endsWith(".doc") ||
+                        file.url.endsWith(".docx") ||
+                        file.url.endsWith(".odt");
+                      const fileName = file.url.split("/").pop() || "Arquivo";
+
                       return (
                         <a
                           key={file.id}
                           href={`http://localhost:3333/files/${file.url}`}
                           target="_blank"
-                          className="group relative h-28 border rounded-lg overflow-hidden hover:shadow-md transition-all flex flex-col items-center justify-center bg-gray-50 text-center p-2 text-decoration-none"
+                          rel="noopener noreferrer"
+                          className="group relative h-32 border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all flex flex-col items-center justify-center bg-white text-center p-0 text-decoration-none"
                         >
-                          {isDoc ? (
-                            <>
+                          {isPdf ? (
+                            // Preview pequeno do PDF na galeria
+                            <iframe
+                              src={`http://localhost:3333/files/${file.url}#toolbar=0&scrollbar=0`}
+                              className="w-full h-full pointer-events-none border-none scale-110"
+                            />
+                          ) : isDoc ? (
+                            <div className="flex flex-col items-center p-2">
                               <FileIcon
-                                size={32}
-                                className="text-blue-500 mb-1"
+                                size={40}
+                                className="text-[#588157] mb-2"
                               />
-                              <span className="text-[10px] text-gray-500 line-clamp-2 break-all">
-                                {file.url}
+                              <span className="text-[11px] text-gray-600 line-clamp-2 break-all font-medium px-2">
+                                {fileName}
                               </span>
-                            </>
+                            </div>
                           ) : (
                             <img
                               src={`http://localhost:3333/files/${file.url}`}
@@ -211,6 +259,8 @@ export default function DetalhesProjeto() {
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                           )}
+                          {/* Efeito Hover para indicar clique */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none"></div>
                         </a>
                       );
                     })}
@@ -218,9 +268,9 @@ export default function DetalhesProjeto() {
                 </div>
               )}
 
-              <div className="flex justify-end pt-4 border-t border-gray-100">
+              <div className="flex justify-end pt-6 border-t border-gray-100">
                 <Link to={`/dashboard/edit/${projeto.id}`}>
-                  <Button color="blue" size="lg" className="shadow-md">
+                  <Button className="bg-[#588157] hover:!bg-[#3a5a40] border-none shadow-md px-6 py-1">
                     <Edit3 size={18} className="mr-2" /> Editar Projeto
                   </Button>
                 </Link>
@@ -228,7 +278,9 @@ export default function DetalhesProjeto() {
             </div>
           </Card>
         ) : (
-          <p className="text-center">Projeto não encontrado.</p>
+          <p className="text-center text-gray-500 mt-10">
+            Carregando detalhes...
+          </p>
         )}
       </div>
     </div>

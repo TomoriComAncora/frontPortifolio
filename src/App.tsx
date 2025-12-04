@@ -3,7 +3,7 @@ import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import { Home } from "./pages/home";
 import Detail from "./pages/detail";
-import { Dashboard } from "./pages/dashboard";
+import Dashboard from "./pages/dashboard";
 import New from "./pages/dashboard/new";
 import EditProject from "./pages/edit";
 import { Layout } from "./components/layout";

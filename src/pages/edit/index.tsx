@@ -49,29 +49,33 @@ const editarProjetoSchema = z.object({
 
 type EditarProjetoForm = z.infer<typeof editarProjetoSchema>;
 
-export default function EditarProjeto() {
+export default function EditProject() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [openSaveModal, setOpenSaveModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [dadosParaSalvar, setDadosParaSalvar] =
+    useState<EditarProjetoForm | null>(null);
+
   const [novasImagens, setNovasImagens] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<
     { url: string; id?: string; isNew: boolean; name?: string }[]
   >([]);
 
+  const [imagensParaRemover, setImagensParaRemover] = useState<string[]>([]);
+
   const {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
   } = useForm<EditarProjetoForm>({
     resolver: zodResolver(editarProjetoSchema),
   });
-
-  const formData = watch();
 
   useEffect(() => {
     async function loadProject() {
@@ -127,80 +131,114 @@ export default function EditarProjeto() {
 
   const removeImage = (index: number) => {
     const img = previewUrls[index];
+
     if (img.isNew) {
+      // Se for nova, remove do array de upload
       let countNewBefore = 0;
       for (let i = 0; i < index; i++)
         if (previewUrls[i].isNew) countNewBefore++;
       setNovasImagens((prev) => prev.filter((_, i) => i !== countNewBefore));
+    } else {
+      if (img.id) {
+        setImagensParaRemover((prev) => [...prev, img.id!]);
+      }
     }
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleFormSubmit = () => setOpenSaveModal(true);
+  const handleFormSubmit = (data: EditarProjetoForm) => {
+    setDadosParaSalvar(data);
+    setOpenSaveModal(true);
+  };
+
+  const onInvalid = () => {
+    toast.error("Verifique os campos obrigatórios.");
+  };
 
   const confirmSave = async () => {
+    if (!dadosParaSalvar) return;
+
+    setIsSaving(true);
     try {
       const dataToSend = new FormData();
-      dataToSend.append("titulo", formData.nome);
-      dataToSend.append("categoria", formData.categoria);
-      dataToSend.append("descricao", formData.descricao);
-      if (formData.cliente) dataToSend.append("cliente", formData.cliente);
-      if (formData.responsavel)
-        dataToSend.append("responsavel", formData.responsavel);
-      if (formData.prazo) dataToSend.append("prazo", formData.prazo);
+      dataToSend.append("titulo", dadosParaSalvar.nome);
+      dataToSend.append("categoria", dadosParaSalvar.categoria);
+      dataToSend.append("descricao", dadosParaSalvar.descricao);
+
+      if (dadosParaSalvar.cliente)
+        dataToSend.append("cliente", dadosParaSalvar.cliente);
+      if (dadosParaSalvar.responsavel)
+        dataToSend.append("responsavel", dadosParaSalvar.responsavel);
+      if (dadosParaSalvar.prazo)
+        dataToSend.append("prazo", dadosParaSalvar.prazo);
 
       novasImagens.forEach((file) => dataToSend.append("imagens", file));
+
+      // --- ENVIAR LISTA DE REMOÇÃO ---
+      if (imagensParaRemover.length > 0) {
+        dataToSend.append(
+          "imagensRemoveIds",
+          JSON.stringify(imagensParaRemover)
+        );
+      }
 
       await api.put(`/project/${id}`, dataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       setOpenSaveModal(false);
       toast.success("Projeto salvo com sucesso!");
-      setTimeout(() => navigate("/"), 1500);
+      setTimeout(() => navigate("/dashboard"), 1500);
     } catch (error) {
-      toast.error("Erro ao salvar alterações.");
+      console.error(error);
+      toast.error("Erro ao salvar.");
       setOpenSaveModal(false);
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
-      <nav className="border-b border-arq-sage/30 bg-white px-4 py-2.5 shadow-sm">
+      <nav className="border-b border-[#a3b18a]/30 bg-white px-4 py-2.5 shadow-sm">
         <div className="flex flex-wrap justify-between items-center mx-auto">
-          <a href="#" className="flex items-center gap-2">
-            <div className="mr-3 h-8 w-8 flex items-center justify-center rounded bg-arq-main text-white">
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <div className="mr-3 h-8 w-8 flex items-center justify-center rounded bg-[#588157] text-white">
               <Building size={20} />
             </div>
-            <span className="self-center whitespace-nowrap text-xl font-semibold text-arq-deep">
+            <span className="self-center whitespace-nowrap text-xl font-semibold text-[#344e41]">
               ArqManager
             </span>
-          </a>
+          </Link>
           <Avatar alt="User" rounded />
         </div>
       </nav>
 
       <div className="mx-auto max-w-5xl p-6">
         <nav className="mb-6 flex text-gray-500 text-sm items-center gap-2">
-          <Link to="/" className="hover:text-arq-main flex items-center gap-1">
+          <Link
+            to="/dashboard"
+            className="hover:text-[#588157] flex items-center gap-1"
+          >
             <Home size={14} /> Home
           </Link>
           <ChevronRight size={14} />
-          <span className="font-semibold text-arq-dark">Editando Projeto</span>
+          <span className="font-semibold text-[#3a5a40]">Editando Projeto</span>
         </nav>
 
-        <Card className="shadow-md border-arq-sage/30">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-arq-light pb-6 mb-2 gap-4">
+        <Card className="shadow-md border-[#a3b18a]/30">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#dad7cd] pb-6 mb-2 gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-arq-deep">
+              <h1 className="text-2xl font-bold text-[#344e41]">
                 Editar Projeto
               </h1>
-              <p className="text-arq-dark mt-1 text-sm">
-                Preencha os dados técnicos do projeto.
+              <p className="text-[#3a5a40] mt-1 text-sm">
+                Atualize as informações e arquivos do projeto.
               </p>
             </div>
             <Link
-              to="/"
-              className="text-arq-dark hover:text-arq-main hover:border-arq-main px-4 py-2 border border-arq-sage rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
+              to="/dashboard"
+              className="text-[#344e41] hover:text-[#588157] px-4 py-2 border border-[#a3b18a] rounded-lg flex items-center gap-2 text-sm font-medium transition-colors"
             >
               <ArrowLeft size={16} /> Voltar
             </Link>
@@ -212,14 +250,14 @@ export default function EditarProjeto() {
             </div>
           ) : (
             <form
-              onSubmit={handleSubmit(handleFormSubmit)}
+              onSubmit={handleSubmit(handleFormSubmit, onInvalid)}
               className="flex flex-col gap-6"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label
                     htmlFor="nome"
-                    className="font-semibold mb-2 block text-arq-deep"
+                    className="font-semibold mb-2 block text-[#344e41]"
                   >
                     Nome do Projeto
                   </Label>
@@ -238,7 +276,7 @@ export default function EditarProjeto() {
                 <div>
                   <Label
                     htmlFor="categoria"
-                    className="font-semibold mb-2 block text-arq-deep"
+                    className="font-semibold mb-2 block text-[#344e41]"
                   >
                     Categoria / Fase
                   </Label>
@@ -256,44 +294,26 @@ export default function EditarProjeto() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <Label
-                    htmlFor="cliente"
-                    className="font-semibold mb-2 block text-arq-deep"
-                  >
+                  <Label className="font-semibold mb-2 block text-[#344e41]">
                     Nome do Cliente
                   </Label>
-                  <TextInput
-                    id="cliente"
-                    icon={User}
-                    placeholder="Ex: João da Silva"
-                    shadow
-                    {...register("cliente")}
-                  />
+                  <TextInput icon={User} shadow {...register("cliente")} />
                 </div>
                 <div>
-                  <Label
-                    htmlFor="responsavel"
-                    className="font-semibold mb-2 block text-arq-deep"
-                  >
+                  <Label className="font-semibold mb-2 block text-[#344e41]">
                     Arquiteto Responsável
                   </Label>
                   <TextInput
-                    id="responsavel"
                     icon={Briefcase}
-                    placeholder="Ex: Arq. Vinicius"
                     shadow
                     {...register("responsavel")}
                   />
                 </div>
                 <div>
-                  <Label
-                    htmlFor="prazo"
-                    className="font-semibold mb-2 block text-arq-deep"
-                  >
+                  <Label className="font-semibold mb-2 block text-[#344e41]">
                     Previsão de Entrega
                   </Label>
                   <TextInput
-                    id="prazo"
                     type="date"
                     icon={Calendar}
                     shadow
@@ -305,9 +325,9 @@ export default function EditarProjeto() {
               <div>
                 <Label
                   htmlFor="descricao"
-                  className="font-semibold mb-2 block text-arq-deep"
+                  className="font-semibold mb-2 block text-[#344e41]"
                 >
-                  Escopo e Detalhes
+                  Descrição / Observações
                 </Label>
                 <Textarea
                   id="descricao"
@@ -317,16 +337,16 @@ export default function EditarProjeto() {
                 />
               </div>
 
-              <div className="border-t border-arq-light pt-4">
-                <Label className="font-semibold mb-2 block text-arq-deep">
-                  Arquivos do Projeto
+              <div className="border-t border-[#dad7cd] pt-4">
+                <Label className="font-semibold mb-2 block text-[#344e41]">
+                  Galeria de Arquivos (Máx 6)
                 </Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
                   {previewUrls.length < 6 && (
-                    <label className="flex flex-col items-center justify-center h-32 w-full border-2 border-arq-sage border-dashed rounded-lg cursor-pointer bg-arq-light/10 hover:bg-arq-light/30 transition-colors">
+                    <label className="flex flex-col items-center justify-center h-32 w-full border-2 border-[#a3b18a] border-dashed rounded-lg cursor-pointer bg-[#f3f4f6] hover:bg-[#dad7cd] transition-colors">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <ImageIcon className="w-8 h-8 text-arq-sage mb-2" />
-                        <p className="text-xs text-arq-dark text-center">
+                        <ImageIcon className="w-8 h-8 text-[#a3b18a] mb-2" />
+                        <p className="text-xs text-[#3a5a40] text-center">
                           Adicionar
                         </p>
                       </div>
@@ -350,7 +370,7 @@ export default function EditarProjeto() {
                     return (
                       <div
                         key={index}
-                        className="relative h-32 w-full border border-arq-sage/50 rounded-lg overflow-hidden group bg-white flex items-center justify-center hover:shadow-md"
+                        className="relative h-32 w-full border border-[#a3b18a]/50 rounded-lg overflow-hidden group bg-white flex items-center justify-center hover:shadow-md"
                       >
                         <a
                           href={item.url}
@@ -362,9 +382,9 @@ export default function EditarProjeto() {
                             <>
                               <FileText
                                 size={32}
-                                className="mb-2 text-arq-main"
+                                className="mb-2 text-[#588157]"
                               />
-                              <span className="text-[10px] text-arq-deep line-clamp-2">
+                              <span className="text-[10px] text-[#344e41] line-clamp-2">
                                 {item.name}
                               </span>
                             </>
@@ -387,7 +407,7 @@ export default function EditarProjeto() {
                           <X size={14} />
                         </button>
                         {item.isNew && (
-                          <span className="absolute bottom-1 right-1 bg-arq-main text-white text-[10px] px-1 rounded shadow-sm pointer-events-none">
+                          <span className="absolute bottom-1 right-1 bg-[#588157] text-white text-[10px] px-1 rounded shadow-sm pointer-events-none">
                             Novo
                           </span>
                         )}
@@ -397,7 +417,7 @@ export default function EditarProjeto() {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-4 pt-6 border-t border-arq-light items-center justify-between">
+              <div className="flex gap-3 mt-4 pt-6 border-t border-[#dad7cd] items-center justify-between">
                 <Button
                   color="failure"
                   outline
@@ -408,16 +428,18 @@ export default function EditarProjeto() {
                 <div className="flex gap-3">
                   <Button
                     color="gray"
-                    className="border-arq-sage text-arq-dark hover:bg-arq-light/20"
+                    className="border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]"
                     onClick={() => window.history.back()}
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-arq-main hover:!bg-arq-dark border-none shadow-md"
+                    className="!bg-[#588157] hover:!bg-[#3a5a40] border-none shadow-md text-white"
+                    disabled={isSaving}
                   >
-                    <Save size={18} className="mr-2" /> Salvar Alterações
+                    <Save size={18} className="mr-2" />{" "}
+                    {isSaving ? "Salvando..." : "Salvar Alterações"}
                   </Button>
                 </div>
               </div>
@@ -433,16 +455,17 @@ export default function EditarProjeto() {
         popup
       >
         <div className="p-6 text-center">
-          <AlertCircle className="mx-auto mb-4 h-14 w-14 text-arq-main bg-arq-light/30 rounded-full p-2" />
+          <AlertCircle className="mx-auto mb-4 h-14 w-14 text-[#588157] bg-[#dad7cd] rounded-full p-2" />
           <h3 className="mb-5 text-lg font-normal text-gray-600">
-            Salvar alterações em <b>{formData?.nome}</b>?
+            Salvar alterações em <b>{dadosParaSalvar?.nome}</b>?
           </h3>
           <div className="flex justify-center gap-4">
             <Button
-              className="bg-arq-main hover:!bg-arq-dark"
+              className="!bg-[#588157] hover:!bg-[#3a5a40]"
               onClick={confirmSave}
+              disabled={isSaving}
             >
-              Sim, salvar
+              {isSaving ? "Salvando..." : "Sim, salvar"}
             </Button>
             <Button color="gray" onClick={() => setOpenSaveModal(false)}>
               Cancelar
@@ -454,9 +477,9 @@ export default function EditarProjeto() {
       <DeleteProjectModal
         isOpen={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
-        onSuccess={() => navigate("/")}
+        onSuccess={() => navigate("/dashboard")}
         projectId={id}
-        projectName={formData?.nome || ""}
+        projectName={dadosParaSalvar?.nome || ""}
       />
     </div>
   );
