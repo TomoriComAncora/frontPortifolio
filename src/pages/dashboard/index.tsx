@@ -1,12 +1,19 @@
 // import { useContext } from "react";
 // import { AuthContext } from "../../contexts/AuthContext";
 import { Container } from "../../components/container";
+import { Button } from "flowbite-react"
+import { Link } from "react-router";
 
 export function Dashboard() {
   // const { user } = useContext(AuthContext);
   return (
     <Container>
-      <h1 className="font-bold text-left mt-6 text-3xl mb-4">Meus projetos</h1>
+      <div className="w-full mx-auto flex justify-between items-center">
+        <h1 className="font-bold text-left mt-6 text-3xl mb-4">Meus projetos</h1>
+        <Button color="green" className="font-bold cursor-pointerpm">
+          <Link to={"/dashboard/new"}>Adicionar projeto</Link>
+        </Button>
+      </div>
 
       <main className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <section className="w-full bg-secundary rounded-lg">

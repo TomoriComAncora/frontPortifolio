@@ -1,30 +1,30 @@
 import type { RegisterOptions, UseFormRegister } from "react-hook-form";
 
-interface InputProps {
-  type: string;
+interface TextAreaProps {
   placeholder: string;
   name: string;
   register: UseFormRegister<any>;
   error?: string;
   rules?: RegisterOptions;
+  rows?: number;
 }
 
-export function Input({
+export function TextArea({
   name,
-  type,
   placeholder,
   register,
   rules,
   error,
-}: InputProps) {
+  rows,
+}: TextAreaProps) {
   return (
     <div>
-      <input
-        className="w-full rounded-md h-11 px-2"
-        type={type}
+      <textarea
+        className="w-full rounded-md px-2"
         placeholder={placeholder}
         {...register(name, rules)}
         id={name}
+        rows={rows}
       />
       {error && <p className="my-1 text-red-800">{error}</p>}
     </div>

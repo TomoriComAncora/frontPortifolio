@@ -16,7 +16,7 @@ interface AuthContextData {
   signed: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (nome: string, email: string, password: string) => Promise<void>;
+
   loginWithGoogle: (token: string) => Promise<void>;
   logout: () => void;
 }
@@ -72,19 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function register(nome: string, email: string, senha: string) {
-    const res = await api.post<LoginResponse>("/users", {
-      nome,
-      email,
-      senha,
-    });
-
-    localStorage.setItem("token", res.data.token);
-    api.defaults.headers.Authorization = `Bearer ${res.data.token}`;
-    const profile = await api.get<User>("/me");
-    setUser(profile.data);
-  }
-
   function logout() {
     localStorage.removeItem("token");
     setUser(null);
@@ -92,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, signed: !!user, loading, login, register, loginWithGoogle, logout }}
+      value={{ user, signed: !!user, loading, login ,loginWithGoogle, logout }}
     >
       {children}
     </AuthContext.Provider>

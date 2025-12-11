@@ -6,10 +6,12 @@ import { Input } from "../../components/input";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AuthContext } from "../../contexts/AuthContext";
 import api from "../../server/api";
+import { useContext } from "react";
 
 const schema = z.object({
-  name: z
+  nome: z
     .string()
     .nonempty("O campo nome é obrigatório")
     .min(3, "O campo nome deve ter mais de 2 caracteres"),
@@ -17,7 +19,7 @@ const schema = z.object({
     .string()
     .email("Insira um email válido")
     .nonempty("O campo é obrigatório"),
-  password: z
+  senha: z
     .string()
     .nonempty("O campo senha é obrigatório")
     .min(4, "A senha deve ter mais de 4 caracteres"),
@@ -27,6 +29,7 @@ type FormData = z.infer<typeof schema>;
 
 export function Register() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const {
     register,
     handleSubmit,
@@ -38,37 +41,24 @@ export function Register() {
 
   async function onSubmit(data: FormData) {
     console.log(data);
-    try{
+    try {
       const create = await api.post("/users", {
-        nome: data.name,
+        nome: data.nome,
         email: data.email,
-        senha: data.password
+        senha: data.senha,
       });
 
       console.log("Resposta da criação: ", create.data);
-      const perfil = await api.post("/session", {
-        email: data.email,
-        senha: data.password,
-      });
-      console.log("Resposta do login: ", perfil.data)
-
-      const token = perfil?.data?.token;
-      console.log("Token recebido: " + token);
-      if(!token){
-        console.log("Não há token");
-        return;
-      }
-      localStorage.setItem("token", token);
-
+      await login(data.email, data.senha);
       navigate("/dashboard");
-      console.log(`Usuário de ${data.name} criado`);
-    }catch(err){
-      console.log("Erro")
+      console.log(`Usuário de ${data.nome} criado`);
+    } catch (err) {
+      console.log("Erro ao criar usuário/loga-lo");
       console.log(err);
     }
   }
 
-    function handleGoogleLogin() {
+  function handleGoogleLogin() {
     window.location.href = "http://localhost:3333/auth/google";
   }
 
@@ -87,8 +77,8 @@ export function Register() {
             <Input
               type="text"
               placeholder="Digite seu nome"
-              name="name"
-              error={errors.name?.message}
+              name="nome"
+              error={errors.nome?.message}
               register={register}
             />
           </div>
@@ -105,8 +95,8 @@ export function Register() {
             <Input
               type="password"
               placeholder="Digite sua senha"
-              name="password"
-              error={errors.password?.message}
+              name="senha"
+              error={errors.senha?.message}
               register={register}
             />
           </div>
@@ -117,7 +107,8 @@ export function Register() {
             Cadastrar
           </button>
           <span className="flex justify-center mb-2">Ou</span>
-          <button className="bg-zinc-500 w-2/5 rounded-lg text-white h-10 font-medium cursor-pointer mb-3 flex justify-around items-center mx-auto hover:scale-105 transition-all shadow-[0px_10px_11px_0px_rgba(168,157,157,0.56)]"
+          <button
+            className="bg-zinc-500 w-2/5 rounded-lg text-white h-10 font-medium cursor-pointer mb-3 flex justify-around items-center mx-auto hover:scale-105 transition-all shadow-[0px_10px_11px_0px_rgba(168,157,157,0.56)]"
             type="button"
             onClick={handleGoogleLogin}
           >
