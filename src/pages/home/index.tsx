@@ -1,6 +1,46 @@
 import { Container } from "../../components/container";
+import { useEffect, useState } from "react";
+import api from "../../server/api";
+
+interface UsuarioProps {
+  id: string;
+  nome: string;
+}
+
+interface ProjetoProps {
+  id: string;
+  titulo: string;
+  categoria: string;
+  createdAt: string;
+  imagemCapa: string;
+  usuario: UsuarioProps;
+}
+
+interface SeachItem {
+  id: string;
+  titulo: string;
+  usuario: UsuarioProps;
+}
 
 export function Home() {
+  const [projetos, setProjetos] = useState<ProjetoProps[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function carregarProjetos() {
+      try {
+        const res = await api.get("/projects");
+        setProjetos(res.data.projetos);
+      } catch (err) {
+        console.log("Erro ao carregar", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregarProjetos();
+  }, []);
+
   return (
     <Container>
       <section className="p-4 rounded-lg w-full mx-auto flex justify-center items-center gap-2 bg-secundary">
@@ -16,54 +56,31 @@ export function Home() {
       <h1 className="font-bold text-left mt-6 text-3xl mb-4">Projetos</h1>
 
       <main className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <section className="w-full bg-secundary rounded-lg">
-          <img
-            className="w-full rounded-t-lg mb-2 max-h-72 hover:scale-102 transition-all"
-            src="https://ventramelidecor.com.br/wp-content/uploads/2024/05/casa-moderna-linhas-retas.jpg"
-            alt="casa"
-          />
-          <p className="font-bold mt-1 mb-2 px-2">Casa moderna</p>
-          <div className="flex flex-col px-2">
-            <span className="text-zinc-800 mb-4">
-              Data: 11/2025 | Categoria: Render
-            </span>
-            <strong className="font-medium mb-2">
-              Arquiteto(a): Ana Clara
-            </strong>
-          </div>
-        </section>
-        <section className="w-full bg-secundary rounded-lg">
-          <img
-            className="w-full rounded-t-lg mb-2 max-h-72 hover:scale-102 transition-all"
-            src="https://ventramelidecor.com.br/wp-content/uploads/2024/05/casa-moderna-linhas-retas.jpg"
-            alt="casa"
-          />
-          <p className="font-bold mt-1 mb-2 px-2">Casa moderna</p>
-          <div className="flex flex-col px-2">
-            <span className="text-zinc-800 mb-4">
-              Data: 11/2025 | Categoria: Render
-            </span>
-            <strong className="font-medium mb-2">
-              Arquiteto(a): Ana Clara
-            </strong>
-          </div>
-        </section>
-        <section className="w-full bg-secundary rounded-lg">
-          <img
-            className="w-full rounded-t-lg mb-2 max-h-72 hover:scale-102 transition-all"
-            src="https://ventramelidecor.com.br/wp-content/uploads/2024/05/casa-moderna-linhas-retas.jpg"
-            alt="casa"
-          />
-          <p className="font-bold mt-1 mb-2 px-2">Casa moderna</p>
-          <div className="flex flex-col px-2">
-            <span className="text-zinc-800 mb-4">
-              Data: 11/2025 | Categoria: Render
-            </span>
-            <strong className="font-medium mb-2">
-              Arquiteto(a): Ana Clara
-            </strong>
-          </div>
-        </section>
+        {loading && <p>Carregando projetos...</p>}
+        {!loading &&
+          projetos.map((projeto) => (
+            <section
+              key={projeto.id}
+              className="w-full bg-secundary rounded-lg"
+            >
+              <img
+                className="w-full rounded-t-lg mb-2 h-56 object-cover hover:scale-102 transition-all"
+                src={`http://localhost:3333/files/${projeto.imagemCapa}`}
+                alt={projeto.titulo}
+              />
+              <p className="font-bold mt-1 mb-2 px-2">{projeto.titulo}</p>
+              <div className="flex flex-col px-2">
+                <span className="text-zinc-800 mb-4">
+                  Data:{" "}
+                  {new Date(projeto.createdAt).toLocaleDateString("pt-BR")} |
+                  Categoria: {projeto.categoria ?? "-"}
+                </span>
+                <strong className="font-medium mb-2">
+                  Arquiteto(a): {projeto.usuario.nome}
+                </strong>
+              </div>
+            </section>
+          ))}
       </main>
     </Container>
   );
