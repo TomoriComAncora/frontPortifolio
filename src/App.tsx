@@ -37,6 +37,14 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+      {
+        path: "/dashboard/:id",
+        element: (
+          <PrivateRoute>
+            <New />
+          </PrivateRoute>
+        ),
+      },
     ],
   },
   {

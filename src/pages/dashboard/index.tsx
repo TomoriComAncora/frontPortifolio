@@ -28,7 +28,7 @@ export function Dashboard() {
       try {
         const res = await api.get("/project");
         setProjetos(res.data.projetos);
-        console.log(res.data.projetos)
+        console.log(res.data.projetos);
       } catch (err) {
         console.log("Erro ao carregar", err);
       } finally {
@@ -58,12 +58,19 @@ export function Dashboard() {
               className="w-full bg-secundary rounded-lg relative"
               key={projeto.id}
             >
-              <Trash2 size={34} color="#fff" className="absolute top-2 left-2 border-2 border-white rounded-full p-1.5 h-10 w-11 bg-black opacity-10 cursor-pointer hover:opacity-100 transition-all"
-              onClick={() => console.log("Teste botão delete")}
+              <Trash2
+                size={34}
+                color="#fff"
+                className="absolute top-2 left-2 border-2 border-white rounded-full p-1.5 h-10 w-11 bg-black opacity-10 cursor-pointer hover:opacity-100 transition-all"
+                onClick={() => console.log("Teste botão delete")}
               />
-              <Pencil size={34} color="#fff" className="absolute top-2 right-2 border-2 border-white rounded-full p-1.5 h-10 w-11 bg-black opacity-10 cursor-pointer hover:opacity-100 transition-all"
-              onClick={() => console.log("Teste botão editar")}
-              />
+              <Link to={`/dashboard/${projeto.id}`}>
+                <Pencil
+                  className="absolute top-2 right-2 border-2 border-white rounded-full p-1.5 h-10 w-11 bg-black opacity-10 cursor-pointer hover:opacity-100 transition-all"
+                  size={34}
+                  color="#fff"
+                />
+              </Link>
               <img
                 className="w-full rounded-t-lg mb-2 h-56 object-cover"
                 src={`http://localhost:3333/files/${projeto.imagemCapa}`}

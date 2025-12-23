@@ -1,6 +1,7 @@
 import { Container } from "../../components/container";
 import { useEffect, useState } from "react";
 import api from "../../server/api";
+import { Link } from "react-router";
 
 interface UsuarioProps {
   id: string;
@@ -59,27 +60,26 @@ export function Home() {
         {loading && <p>Carregando projetos...</p>}
         {!loading &&
           projetos.map((projeto) => (
-            <section
-              key={projeto.id}
-              className="w-full bg-secundary rounded-lg"
-            >
-              <img
-                className="w-full rounded-t-lg mb-2 h-56 object-cover hover:scale-102 transition-all"
-                src={`http://localhost:3333/files/${projeto.imagemCapa}`}
-                alt={projeto.titulo}
-              />
-              <p className="font-bold mt-1 mb-2 px-2">{projeto.titulo}</p>
-              <div className="flex flex-col px-2">
-                <span className="text-zinc-800 mb-4">
-                  Data:{" "}
-                  {new Date(projeto.createdAt).toLocaleDateString("pt-BR")} |
-                  Categoria: {projeto.categoria ?? "-"}
-                </span>
-                <strong className="font-medium mb-2">
-                  Arquiteto(a): {projeto.usuario.nome}
-                </strong>
-              </div>
-            </section>
+            <Link to={`/project/${projeto.id}`} key={projeto.id}>
+              <section className="w-full bg-secundary rounded-lg">
+                <img
+                  className="w-full rounded-t-lg mb-2 h-56 object-cover hover:scale-102 transition-all"
+                  src={`http://localhost:3333/files/${projeto.imagemCapa}`}
+                  alt={projeto.titulo}
+                />
+                <p className="font-bold mt-1 mb-2 px-2">{projeto.titulo}</p>
+                <div className="flex flex-col px-2">
+                  <span className="text-zinc-800 mb-4">
+                    Data:{" "}
+                    {new Date(projeto.createdAt).toLocaleDateString("pt-BR")} |
+                    Categoria: {projeto.categoria ?? "-"}
+                  </span>
+                  <strong className="font-medium mb-2">
+                    Arquiteto(a): {projeto.usuario.nome}
+                  </strong>
+                </div>
+              </section>
+            </Link>
           ))}
       </main>
     </Container>
