@@ -2,10 +2,10 @@ import { createBrowserRouter } from "react-router";
 import { Login } from "./pages/login";
 import { Register } from "./pages/register";
 import { Home } from "./pages/home";
-import { Detail } from "./pages/detail";
-import { Dashboard } from "./pages/dashboard";
+import Detail from "./pages/detail";
+import Dashboard from "./pages/dashboard";
 import { New } from "./pages/dashboard/new";
-
+import Edit from "./pages/edit";
 import { Layout } from "./components/layout";
 import { PrivateRoute } from "./routes/PrivateRoute";
 
@@ -42,6 +42,14 @@ const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <New />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/dashboard/edit/:id",
+        element: (
+          <PrivateRoute>
+            <Edit />
           </PrivateRoute>
         ),
       },
