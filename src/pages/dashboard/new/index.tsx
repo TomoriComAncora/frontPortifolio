@@ -139,7 +139,7 @@ export function New() {
                     className="w-full h-full object-cover"
                   />
                   <div
-                    className="absolute top-2 right-2 bg-red-500 rounded-full p-1 cursor-pointer hover:bg-red-600"
+                    className="absolute top-2 right-2 bg-red-500 rounded-full p-1 cursor-pointer hover:bg-red-600 hover:scale-105"
                     onClick={(e) => {
                       e.stopPropagation();
                       removerCapa();
@@ -218,7 +218,7 @@ export function New() {
                   <button
                     type="button"
                     onClick={() => removerItemGaleria(index)}
-                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-80 hover:opacity-100 transition"
+                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-80 hover:opacity-100 hover:scale-105 transition"
                   >
                     <X size={12} />
                   </button>
