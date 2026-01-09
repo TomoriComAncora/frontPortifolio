@@ -39,9 +39,12 @@ interface Projeto {
 export default function Dashboard() {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // --- ESTADOS DA BUSCA ---
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
   const [projectToDelete, setProjectToDelete] = useState<{
     id: string;
     nome: string;
@@ -74,10 +77,14 @@ export default function Dashboard() {
     fetchProjects();
   }, []);
 
-  const filteredProjects = projetos.filter((p) =>
-    (p.titulo || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // --- LÓGICA DE FILTRAGEM (AQUI QUE A MÁGICA ACONTECE) ---
+  const filteredProjects = projetos.filter((p) => {
+    // Garante que o titulo existe, converte tudo pra minúsculo e compara
+    const titulo = p.titulo || "";
+    return titulo.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
+  // --- PAGINAÇÃO BASEADA NO FILTRO ---
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProjects = filteredProjects.slice(
@@ -86,12 +93,11 @@ export default function Dashboard() {
   );
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
 
+  // Quando digita, atualiza o termo e VOLTA PRA PÁGINA 1
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
-
-  const onPageChange = (page: number) => setCurrentPage(page);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -106,7 +112,6 @@ export default function Dashboard() {
     }
   };
 
-  // --- MUDANÇA AQUI: VISUALIZAÇÃO LIMPA ---
   const renderPreview = (projeto: Projeto) => {
     let fileName = null;
 
@@ -120,15 +125,12 @@ export default function Dashboard() {
       const fullUrl = fileName.startsWith("http")
         ? fileName
         : `http://localhost:3333/files/${fileName}`;
-
-      // Verifica se é um arquivo de DOCUMENTO (PDF entra aqui agora)
       const isFile =
         fullUrl.toLowerCase().endsWith(".pdf") ||
         fullUrl.toLowerCase().endsWith(".doc") ||
         fullUrl.toLowerCase().endsWith(".docx") ||
         fullUrl.toLowerCase().endsWith(".odt");
 
-      // Se for PDF ou Doc, mostra o ícone bonito e limpo
       if (isFile) {
         return (
           <div className="h-full w-full flex flex-col items-center justify-center bg-[#dad7cd]/50 text-[#588157]">
@@ -137,8 +139,6 @@ export default function Dashboard() {
           </div>
         );
       }
-
-      // Se for imagem (JPG, PNG), mostra a foto
       return (
         <img
           src={fullUrl}
@@ -147,8 +147,6 @@ export default function Dashboard() {
         />
       );
     }
-
-    // Sem arquivo
     return (
       <div className="h-full w-full flex items-center justify-center bg-[#dad7cd]/30 text-[#a3b18a]">
         <ImageIcon size={48} />
@@ -161,8 +159,12 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center my-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Meus Projetos</h1>
+          {/* Mostra quantos achou na busca */}
           <p className="text-gray-500 mt-1">
-            {filteredProjects.length} projetos encontrados
+            {filteredProjects.length}{" "}
+            {filteredProjects.length === 1
+              ? "projeto encontrado"
+              : "projetos encontrados"}
           </p>
         </div>
         <Link to="/dashboard/new">
@@ -172,12 +174,13 @@ export default function Dashboard() {
         </Link>
       </div>
 
+      {/* CAMPO DE BUSCA */}
       <div className="mb-8 max-w-md">
         <TextInput
           id="search"
           type="text"
           icon={Search}
-          placeholder="Buscar por projeto..."
+          placeholder="Buscar por nome do projeto..."
           value={searchTerm}
           onChange={handleSearchChange}
           className="shadow-sm"
@@ -277,6 +280,11 @@ export default function Dashboard() {
           <h3 className="text-lg font-medium text-gray-900">
             Nenhum projeto encontrado
           </h3>
+          {searchTerm && (
+            <p className="text-gray-500 mt-2">
+              Não encontramos nada com "{searchTerm}"
+            </p>
+          )}
         </div>
       )}
 
